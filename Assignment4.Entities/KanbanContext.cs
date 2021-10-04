@@ -1,6 +1,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Assignment4.Core;
 
 namespace Assignment4.Entities
 {
@@ -12,13 +13,14 @@ namespace Assignment4.Entities
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            public KanbanContext(DbContextOptions<KanbanContext> options) : base(options) { }
 
             modelBuilder
-                .Entity<Character>()
+                .Entity<Task>()
                 .Property(e => e.State)
                 .HasConversion(new EnumToStringConverter<State>());
 
         }
+
+        public KanbanContext(DbContextOptions<KanbanContext> options) : base(options) { }
     }
 }

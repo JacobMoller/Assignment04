@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Assignment4.Core;
 
 
 namespace Assignment4.Entities
@@ -18,15 +19,7 @@ namespace Assignment4.Entities
         public string description { get; set; }
 
         [Required]
-        public State state { get; set; }
-        public enum State
-        {
-            New,
-            Active,
-            Resolved,
-            Closed,
-            Removed
-        }
+        public State State { get; set; }
 
         public ICollection<Tag> tags { get; set; }
     }
