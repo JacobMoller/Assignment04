@@ -3,6 +3,8 @@ using System.Data.SqlClient;
 using System.Data;
 using Microsoft.Extensions.Configuration;
 using System.IO;
+using Assignment4.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Assignment4
 {
@@ -12,6 +14,9 @@ namespace Assignment4
         {
             var configuration = LoadConfiguration();
             var connectionString = configuration.GetConnectionString("KanbanBoard");
+
+            var optionsBuilder = new DbContextOptionsBuilder<KanbanContext>().UseSqlServer(connectionString);
+            using var context = new KanbanContext(optionsBuilder.Options);
 
             var cmdText = "SELECT * FROM Users";
 
