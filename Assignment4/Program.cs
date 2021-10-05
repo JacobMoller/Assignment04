@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Data.SqlClient;
-using System.Data;
-using Microsoft.Extensions.Configuration;
-using System.IO;
 using Assignment4.Entities;
-using Microsoft.EntityFrameworkCore;
+using Assignment4.Core;
 
 namespace Assignment4
 {
@@ -12,45 +8,42 @@ namespace Assignment4
     {
         static void Main(string[] args)
         {
-            var configuration = LoadConfiguration();
-            var connectionString = configuration.GetConnectionString("KanbanBoard");
+            var ts = new TaskRepository();
+            /*All
+            ts.All();
+            */
 
-            var optionsBuilder = new DbContextOptionsBuilder<KanbanContext>().UseSqlServer(connectionString);
-            using var context = new KanbanContext(optionsBuilder.Options);
-
-            var cmdText = "SELECT * FROM Users";
-
-            using var connection = new SqlConnection(connectionString);
-            using var command = new SqlCommand(cmdText, connection);
-
-            connection.Open();
-
-            using var reader = command.ExecuteReader();
-
-            while (reader.Read())
+            /*Create
+            var taskdto = new TaskDTO
             {
-                var user = new
-                {
-                    id = reader.GetInt32("id"),
-                    name = reader.GetString("name"),
-                    email = reader.GetString("email")
-                };
+                Title = "lav ui",
+                State = State.New,
+            };
+            ts.Create(taskdto);
+            */
 
-                Console.WriteLine(user);
-            }
+            /*Delete
+            ts.Delete(910);
+            */
 
-            connection.Close();
+            /*FindById
+            ts.FindById(1);
+            */
 
-
-            static IConfiguration LoadConfiguration()
+            /*Update
+            var taskdto = new TaskDTO
             {
-                var builder = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("appsettings.json")
-                    .AddUserSecrets<Program>();
+                Id = 912,
+                Title = "UI Design",
+                State = State.Closed,
+                AssignedToId = 467,
+            };
+            ts.Update(taskdto);
+            */
 
-                return builder.Build();
-            }
+            /*Dispose
+            ts.Dispose();
+            */
         }
     }
 }

@@ -9,6 +9,7 @@ namespace Assignment4
 {
     public class KanbanContextFactory : IDesignTimeDbContextFactory<KanbanContext>
     {
+        public KanbanContext context;
         public KanbanContext CreateDbContext(string[] args)
         {
             var configuration = new ConfigurationBuilder()
@@ -22,7 +23,9 @@ namespace Assignment4
             var optionsBuilder = new DbContextOptionsBuilder<KanbanContext>()
                 .UseSqlServer(connectionString);
 
-            return new KanbanContext(optionsBuilder.Options);
+            context = new KanbanContext(optionsBuilder.Options);
+
+            return context;
         }
     }
 }
