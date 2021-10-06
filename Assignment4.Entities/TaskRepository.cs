@@ -46,6 +46,7 @@ namespace Assignment4.Entities
         }
         public int Create(TaskDTO task)
         {
+            //Check for additional info from TaskDTO
             var taskElement = new Task
             {
                 title = task.Title,
@@ -54,7 +55,7 @@ namespace Assignment4.Entities
             context.Tasks.Add(taskElement);
             context.SaveChanges();
 
-            return (int)taskElement.taskId;
+            return taskElement.taskId;
         }
 
         public void Delete(int taskId)
@@ -65,30 +66,29 @@ namespace Assignment4.Entities
 
         public TaskDetailsDTO FindById(int id)
         {
-            var result = context.Users.Join(context.Tasks,
-            user => user.userId,
-            task => task.assignedTo.userId,
-            (user, task) => new { user, task })
-            .Where(task => task.task.taskId == id)
-            .Select(z => new { user = z.user, task = z.task });
-
-            var taskResult = result.First().task;
-            var userResult = result.First().user;
-            var taskDTO = new TaskDetailsDTO
+            if (context.Tasks.Where(task => task.taskId == id).Count() > 0)
             {
-                Id = taskResult.taskId,
-                Title = taskResult.title,
-                Description = taskResult.description,
-                AssignedToId = userResult.userId,
-                AssignedToName = userResult.name,
-                AssignedToEmail = userResult.email,
-                Tags = null,
-                State = taskResult.state,
-            };
-            //update tags HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            //(IEnumerable<string>) taskResult.tags.SelectMany(tag => tag.name),
-
-            return taskDTO;
+                var result = from t in context.Tasks
+                             join u in context.Users on t.assignedTo.userId equals u.userId into hej
+                             from testnavn in hej.DefaultIfEmpty()
+                             where t.taskId == id
+                             select new TaskDetailsDTO()
+                             {
+                                 Id = t.taskId,
+                                 Title = t.title,
+                                 Description = t.description,
+                                 AssignedToId = t.assignedTo.userId,
+                                 AssignedToName = testnavn.name,
+                                 AssignedToEmail = testnavn.email,
+                                 Tags = null,
+                                 State = t.state
+                             };
+                return (TaskDetailsDTO)result.Single();
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public void Update(TaskDTO task)
@@ -101,6 +101,7 @@ namespace Assignment4.Entities
             }
             result.description = task.Description;
             result.state = task.State;
+
             //update tags HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
             context.SaveChanges();
@@ -108,7 +109,23 @@ namespace Assignment4.Entities
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            context.Dispose();
+        }
+
+
+        public bool existsInDb(int taskId)
+        {
+            return FindById(taskId) != null;
+        }
+
+        public int getCount()
+        {
+            return context.Tasks.Count();
+        }
+
+        public void tagsTest()
+        {
+            //context.Entry(task).Collection(t => t.Tags).Query("")
         }
     }
 }
