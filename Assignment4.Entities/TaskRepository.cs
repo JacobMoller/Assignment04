@@ -12,92 +12,132 @@ namespace Assignment4.Entities
 {
     public class TaskRepository : ITaskRepository
     {
-        KanbanContext context = getContext();
-        public static KanbanContext getContext()
+
+        KanbanContext _context;
+
+        public TaskRepository()
         {
             var configuration = new ConfigurationBuilder()
-                .SetBasePath(Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..//..//..//..//")))
-                .AddUserSecrets<TaskRepository>()
-                .AddJsonFile("appsettings.json")
-                .Build();
+                    .SetBasePath(Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..//..//..//..//")))
+                    .AddUserSecrets<TaskRepository>()
+                    .AddJsonFile("appsettings.json")
+                    .Build();
 
             var connectionString = configuration.GetConnectionString("KanbanBoard");
 
             var optionsBuilder = new DbContextOptionsBuilder<KanbanContext>().UseSqlServer(connectionString);
-            return new KanbanContext(optionsBuilder.Options);
+
+            var context = new KanbanContext(optionsBuilder.Options);
+
+            _context = context;
         }
 
-        public IReadOnlyCollection<TaskDTO> All()
+        public (Response Response, int TaskId) Create(TaskCreateDTO task)
         {
-            List<TaskDTO> collection = new List<TaskDTO>();
-            foreach (var item in context.Tasks.ToList())
+            User user = null;
+            if (task.AssignedToId != null)
             {
-                var element = new TaskDTO
+                var userDTOResponse = new UserRepository().Read((int)task.AssignedToId);
+
+                user = new User
                 {
-                    Id = item.taskId,
-                    Title = item.title,
-                    Description = item.description,
-                    AssignedToId = item.assignedTo == null ? null : item.assignedTo.userId,
-                    State = item.state,
+                    id = userDTOResponse.Id,
+                    name = userDTOResponse.Name,
+                    email = userDTOResponse.Email,
+                    tasks = null,
                 };
-                collection.Add(element);
             }
-            return collection;
-        }
-        public int Create(TaskDTO task)
-        {
-            //Check for additional info from TaskDTO
+
             var taskElement = new Task
             {
                 title = task.Title,
-                state = task.State,
+                assignedTo = user,
+                description = task.Description,
+                tags = (ICollection<Tag>)task.Tags,
+                created = DateTime.UtcNow,
+                state = State.New,
+                stateUpdated = DateTime.UtcNow,
             };
-            context.Tasks.Add(taskElement);
-            context.SaveChanges();
+            _context.Tasks.Add(taskElement);
+            _context.SaveChanges();
+            Console.WriteLine(taskElement.id);
 
-            return taskElement.taskId;
+            return (Response.Created, taskElement.id);
         }
 
-        public void Delete(int taskId)
+
+        /*
+        MAYBE FOR TESTS??
+        public bool existsInDb(int taskId)
         {
-            context.Tasks.Remove(context.Tasks.Single(s => s.taskId == taskId));
-            context.SaveChanges();
+            return FindById(taskId) != null;
         }
 
-        public TaskDetailsDTO FindById(int id)
+
+        public int getCount()
         {
-            if (context.Tasks.Where(task => task.taskId == id).Count() > 0)
+            return _context.Tasks.Count();
+        }
+        */
+
+        public IReadOnlyCollection<TaskDTO> ReadAll()
+        {
+            /*List<TaskDTO> collection = new List<TaskDTO>();
+            foreach (var task in _context.Tasks.ToList())
             {
-                var result = from t in context.Tasks
-                             join u in context.Users on t.assignedTo.userId equals u.userId into hej
-                             from testnavn in hej.DefaultIfEmpty()
-                             where t.taskId == id
-                             select new TaskDetailsDTO()
-                             {
-                                 Id = t.taskId,
-                                 Title = t.title,
-                                 Description = t.description,
-                                 AssignedToId = t.assignedTo.userId,
-                                 AssignedToName = testnavn.name,
-                                 AssignedToEmail = testnavn.email,
-                                 Tags = null,
-                                 State = t.state
-                             };
-                return (TaskDetailsDTO)result.Single();
+                var element = new TaskDTO
+                {
+                    Id = task.id,
+                    Title = task.title,
+                    AssignedToName = task.assignedTo == null ? null : task.assignedTo.name,
+                    Tags = null,
+                    State = task.state,
+                };
+                collection.Add(element);
             }
-            else
-            {
-                return null;
-            }
+            return collection; */
+            throw new NotImplementedException();
         }
 
-        public void Update(TaskDTO task)
+        public IReadOnlyCollection<TaskDTO> ReadAllRemoved()
         {
-            var result = context.Tasks.Single(s => s.taskId == task.Id);
+            throw new NotImplementedException();
+        }
+
+        public IReadOnlyCollection<TaskDTO> ReadAllByTag(string tag)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IReadOnlyCollection<TaskDTO> ReadAllByUser(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IReadOnlyCollection<TaskDTO> ReadAllByState(State state)
+        {
+            throw new NotImplementedException();
+        }
+
+        public TaskDetailsDTO Read(int id)
+        {
+            var result = from t in _context.Tasks
+                         join u in _context.Users on t.assignedTo.id equals u.id into taskuser
+                         from testnavn in taskuser.DefaultIfEmpty()
+                         where t.id == id
+                         select new TaskDetailsDTO(t.id, t.title, t.description, t.created, t.assignedTo.name, null, t.state, t.stateUpdated);
+
+            return (TaskDetailsDTO)result.FirstOrDefault();
+        }
+
+        public Response Update(TaskUpdateDTO task)
+        {
+            /*
+            var result = context.Tasks.Single(s => s.id == task.Id);
             result.title = task.Title;
-            if (task.AssignedToId != null)
+            if (task.AssignedToName != null)
             {
-                result.assignedTo = context.Users.Single(s => s.userId == task.AssignedToId);
+                result.assignedTo = context.Users.Single(s => s.userName == task.AssignedToId);
             }
             result.description = task.Description;
             result.state = task.State;
@@ -105,27 +145,15 @@ namespace Assignment4.Entities
             //update tags HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
             context.SaveChanges();
+            */
+            throw new NotImplementedException();
         }
 
-        public void Dispose()
+        Response ITaskRepository.Delete(int id)
         {
-            context.Dispose();
-        }
-
-
-        public bool existsInDb(int taskId)
-        {
-            return FindById(taskId) != null;
-        }
-
-        public int getCount()
-        {
-            return context.Tasks.Count();
-        }
-
-        public void tagsTest()
-        {
-            //context.Entry(task).Collection(t => t.Tags).Query("")
+            /*_context.Tasks.Remove(_context.Tasks.Single(s => s.id == taskId));
+            _context.SaveChanges();*/
+            throw new NotImplementedException();
         }
     }
 }

@@ -9,7 +9,7 @@ namespace Assignment4.Entities
     public class Task
     {
         [Key]
-        public int taskId { get; set; }
+        public int id { get; set; }
 
         [Required]
         [StringLength(100)]
@@ -18,9 +18,14 @@ namespace Assignment4.Entities
         public User assignedTo { get; set; }
         public string description { get; set; }
 
+        public DateTime created { get; set; }
+
         [Required]
         public State state { get; set; }
 
         public ICollection<Tag> tags { get; set; }
+
+        public DateTime stateUpdated { get; set; }
+
     }
 }

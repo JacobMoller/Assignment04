@@ -9,7 +9,7 @@ namespace Assignment4.Entities
     public class User
     {
         [Key]
-        public int userId { get; set; }
+        public int id { get; set; }
 
         [StringLength(100)]
         public string name { get; set; }
