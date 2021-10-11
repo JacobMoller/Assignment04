@@ -31,8 +31,8 @@ namespace Assignment4.Entities
         }
         public (Response Response, int TagId) Create(TagCreateDTO tag)
         {
-            var tagResult = _context.Tags.FirstOrDefault(t => t.name == tag.Name);
-            if (tagResult == null)
+            var tagResult = _context.Tags.Where(t => t.name == tag.Name);
+            if (tagResult.ToList().Count == 0)
             {
                 var newTagElement = new Tag
                 {
@@ -46,12 +46,28 @@ namespace Assignment4.Entities
             {
                 return (Response.Conflict, 0);
             }
+            /*foreach (var item in _context.Tags)
+            {
+                Console.WriteLine("Hellooooo");
+                if (item.name.ToString() == tag.Name)
+                {
+                    return (Response.Conflict, 0);
+                }
+            }
+            var newTagElement = new Tag
+            {
+                name = tag.Name,
+            };
+            _context.Tags.Add(newTagElement);
+            _context.SaveChanges();
+            return (Response.Created, newTagElement.id);*/
         }
 
         public Response Delete(int tagId, bool force = false)
         {
             var tagResult = _context.Tags.FirstOrDefault(t => t.id == tagId);
-            if (tagResult.tasks.Count() > 0 && !force)
+            Console.WriteLine(tagResult.tasks == null);
+            if (tagResult.tasks != null && !force)
                 return Response.Conflict;
             else
             {

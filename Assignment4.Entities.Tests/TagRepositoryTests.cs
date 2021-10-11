@@ -1,3 +1,4 @@
+using System;
 using Xunit;
 using Assignment4.Core;
 using System.Collections.Generic;
@@ -6,24 +7,25 @@ namespace Assignment4.Entities.Tests
 {
     public class TagRepositoryTests
     {
-        /*TagRepository ts = new TagRepository();
+        TagRepository ts = new TagRepository();
 
         [Fact]
         public void CreateDTO()
         {
             var tagCreateDTO = new TagCreateDTO
             {
-                Name = "test"
+                Name = "Test"
             };
 
-            (Response response, int id) = ts.Create(tagCreateDTO);
+            var response = ts.Create(tagCreateDTO);
 
-            Assert.Equal(Response.Created, response);
+            Assert.Equal(Response.Created, response.Response);
 
-            var expected = new TagDTO(id, "test");
-            var actual = ts.Read(id);
+            var expected = new TagDTO(response.TagId, "Test");
+            var actual = ts.Read(response.TagId);
             Assert.Equal(expected.Id, actual.Id);
             Assert.Equal(expected.Name, actual.Name);
+            ts.Delete(response.TagId, false);
         }
 
 
@@ -35,11 +37,12 @@ namespace Assignment4.Entities.Tests
                 Name = "Innovation"
             };
 
-            (Response tagResponse, int tagId) = ts.Create(tag);
+            var response = ts.Create(tag);
 
-            TagDTO tagDTO = new TagDTO(tagId, tag.Name);
+            TagDTO tagDTO = new TagDTO(response.TagId, tag.Name);
 
-            Assert.Equal(tagDTO, ts.Read(tagId));
+            Assert.Equal(tagDTO, ts.Read(response.TagId));
+            ts.Delete(response.TagId, false);
         }
 
         [Fact]
@@ -65,15 +68,17 @@ namespace Assignment4.Entities.Tests
             {
                 Name = "Make UI",
             };
-            (Response oldTaskResponse, int id) = ts.Create(tagDTO);
-            Assert.Equal(Response.Created, oldTaskResponse);
+            var response = ts.Create(tagDTO);
+            Assert.Equal(Response.Created, response.Response);
 
             var newTagDTO = new TagUpdateDTO
             {
+                Id = response.TagId,
                 Name = "UI",
             };
             var newTaskResponse = ts.Update(newTagDTO);
             Assert.Equal(Response.Updated, newTaskResponse);
+            ts.Delete(response.TagId, false);
         }
 
         [Fact]
@@ -81,7 +86,7 @@ namespace Assignment4.Entities.Tests
         {
             TagCreateDTO tag = new TagCreateDTO
             {
-                Name = "UI",
+                Name = "User Interface",
             };
             (Response tagResponse, int id) = ts.Create(tag);
 
@@ -108,11 +113,15 @@ namespace Assignment4.Entities.Tests
                 Tags = new List<string> { "User Interface" },
             };
 
-            var tagDeleteResponse = ts.Delete(id);
+            var taskRepo = new TaskRepository();
+            taskRepo.Create(taskCreateDTO);
+
+            var tagDeleteResponse = ts.Delete(id, false);
             Assert.Equal(Response.Conflict, tagDeleteResponse);
+            ts.Delete(id, true);
         }
 
-        [Fact]
+        /*[Fact]
         public void DeleteSuccesful_WithForce()
         {
             TagCreateDTO tag = new TagCreateDTO

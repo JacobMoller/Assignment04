@@ -62,8 +62,6 @@ namespace Assignment4.Entities.Tests
         /*[Fact]
         public void ReadAllRemoved()
         {
-
-
             int a = ts.ReadAllRemoved().Count();
             var taskDTO = new TaskCreateDTO
             {
@@ -93,7 +91,7 @@ namespace Assignment4.Entities.Tests
             Assert.Equal(a, b + 1);
         }*/
 
-        [Fact]
+        /*[Fact]
         public void ReadAllByTag()
         {
             var taskDTOOne = new TaskCreateDTO
@@ -101,7 +99,7 @@ namespace Assignment4.Entities.Tests
                 Title = "Make UI",
                 AssignedToId = 4,
                 Description = "hej",
-                Tags = new List<string> { "UI" },
+                Tags = new List<string>() { "UI" },
             };
             ts.Create(taskDTOOne);
 
@@ -118,13 +116,13 @@ namespace Assignment4.Entities.Tests
 
             int b = ts.ReadAllByTag("UI").Count();
             Assert.Equal(a, b - 1);
-        }
+        }*/
 
-        [Fact]
+        /*[Fact]
         public void ReadAllByUser()
         {
 
-        }
+        }*/
 
         [Fact]
         public void ReadAllByState()
@@ -213,8 +211,6 @@ namespace Assignment4.Entities.Tests
                 Tags = null,
             };
             var createdResponse = ts.Create(taskDTO);
-
-            //
 
             Assert.Equal(Response.Created, createdResponse.Response);
 

@@ -41,7 +41,6 @@ namespace Assignment4.Entities
 
                 user = new User
                 {
-                    id = 0,
                     name = userDTOResponse.name,
                     email = userDTOResponse.email,
                     tasks = userDTOResponse.tasks,
@@ -50,22 +49,27 @@ namespace Assignment4.Entities
 
             //Handle Tags
             var cleanedTags = new List<Tag>();
-            foreach (var item in task.Tags)
+            if (task.Tags != null)
             {
-                var tag = _context.Tags.FirstOrDefault(x => x.name == item);
-                if (tag == null)
+                foreach (var item in task.Tags)
                 {
-                    var newTag = new Tag
+                    var tag = _context.Tags.Where(x => x.name == item).FirstOrDefault();
+                    if (tag == null)
                     {
-                        name = item,
-                    };
-                    _context.Tags.Add(newTag);
-                    _context.SaveChanges();
-                    cleanedTags.Add(newTag);
-                }
-                else
-                {
-                    cleanedTags.Add(tag);
+                        var newTag = new Tag
+                        {
+                            id = 0,
+                            name = item,
+                            tasks = null,
+                        };
+                        _context.Tags.Add(newTag);
+                        _context.SaveChanges();
+                        cleanedTags.Add(newTag);
+                    }
+                    else
+                    {
+                        cleanedTags.Add(tag);
+                    }
                 }
             }
 
@@ -82,6 +86,15 @@ namespace Assignment4.Entities
             _context.Tasks.Add(taskElement);
             _context.SaveChanges();
 
+            foreach (var item in cleanedTags)
+            {
+                var tagToBeUpdated = _context.Tags.Where(x => x.id == item.id).FirstOrDefault();
+                List<Task> tasksList = tagToBeUpdated.tasks.ToList();
+                tasksList.Add(taskElement);
+                tagToBeUpdated.tasks = tasksList;
+                _context.SaveChanges();
+            }
+
             return (Response.Created, taskElement.id);
         }
 
@@ -95,7 +108,7 @@ namespace Assignment4.Entities
                 {
                     assignedToName = item.assignedTo.name;
                 }
-                tasks.Add(new TaskDTO(item.id, item.title, assignedToName, (IReadOnlyCollection<string>)item.tags, item.state));
+                tasks.Add(new TaskDTO(item.id, item.title, assignedToName, getTagNameFromTag(item.tags), item.state));
             }
             return tasks;
         }
@@ -112,7 +125,7 @@ namespace Assignment4.Entities
                     {
                         assignedToName = item.assignedTo.name;
                     }
-                    tasks.Add(new TaskDTO(item.id, item.title, assignedToName, (IReadOnlyCollection<string>)item.tags, item.state));
+                    tasks.Add(new TaskDTO(item.id, item.title, assignedToName, getTagNameFromTag(item.tags), item.state));
                 }
             }
             return tasks;
@@ -132,11 +145,24 @@ namespace Assignment4.Entities
                         {
                             assignedToName = item.assignedTo.name;
                         }
-                        tasks.Add(new TaskDTO(item.id, item.title, assignedToName, (IReadOnlyCollection<string>)item.tags, item.state));
+                        tasks.Add(new TaskDTO(item.id, item.title, assignedToName, getTagNameFromTag(item.tags), item.state));
                     }
                 }
             }
             return tasks;
+        }
+
+        private IReadOnlyCollection<string> getTagNameFromTag(ICollection<Tag> tagsInput)
+        {
+            var tags = new List<string>();
+            if (tagsInput != null)
+            {
+                foreach (var tagItem in tagsInput)
+                {
+                    tags.Add(tagItem.name);
+                }
+            }
+            return tags;
         }
 
         public IReadOnlyCollection<TaskDTO> ReadAllByUser(int id)
@@ -151,7 +177,7 @@ namespace Assignment4.Entities
                     {
                         assignedToName = item.assignedTo.name;
                     }
-                    tasks.Add(new TaskDTO(item.id, item.title, assignedToName, (IReadOnlyCollection<string>)item.tags, item.state));
+                    tasks.Add(new TaskDTO(item.id, item.title, assignedToName, getTagNameFromTag(item.tags), item.state));
                 }
             }
             return tasks;
@@ -169,7 +195,8 @@ namespace Assignment4.Entities
                     {
                         assignedToName = item.assignedTo.name;
                     }
-                    tasks.Add(new TaskDTO(item.id, item.title, assignedToName, (IReadOnlyCollection<string>)item.tags, item.state));
+                    var tags = new List<string>();
+                    tasks.Add(new TaskDTO(item.id, item.title, assignedToName, getTagNameFromTag(item.tags), item.state));
                 }
             }
             return tasks;
