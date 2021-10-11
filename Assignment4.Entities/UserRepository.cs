@@ -30,12 +30,32 @@ namespace Assignment4.Entities
         }
         public (Response Response, int UserId) Create(UserCreateDTO user)
         {
-            throw new System.NotImplementedException();
+            var userResult = _context.Users.FirstOrDefault(t => t.email == user.Email);
+            if (userResult == null)
+            {
+                var newUserElement = new User
+                {
+                    name = user.Name,
+                    email = user.Email,
+                };
+                _context.Users.Add(newUserElement);
+                _context.SaveChanges();
+                return (Response.Created, newUserElement.id);
+            }
+            else
+            {
+                return (Response.Conflict, 0);
+            }
         }
 
-        public Response Delete(int userId, bool force = false)
+        public IReadOnlyCollection<UserDTO> ReadAll()
         {
-            throw new System.NotImplementedException();
+            var users = new List<UserDTO>();
+            foreach (var item in _context.Users)
+            {
+                users.Add(new UserDTO(item.id, item.name, item.email));
+            }
+            return users;
         }
 
         public UserDTO Read(int userId)
@@ -44,14 +64,31 @@ namespace Assignment4.Entities
             return new UserDTO(user.id, user.name, user.email);
         }
 
-        public IReadOnlyCollection<UserDTO> ReadAll()
-        {
-            throw new System.NotImplementedException();
-        }
-
         public Response Update(UserUpdateDTO user)
         {
-            throw new System.NotImplementedException();
+            var userElement = new User
+            {
+                name = user.Name,
+                email = user.Email,
+            };
+            var elementToBeUpdated = _context.Users.Single(x => x.id == user.Id);
+            //Maybe use the _context.UpdateRange here?
+            elementToBeUpdated = userElement;
+            _context.SaveChanges();
+            return Response.Updated;
+        }
+
+        public Response Delete(int userId, bool force = false)
+        {
+            var userResult = _context.Users.FirstOrDefault(u => u.id == userId);
+            if (userResult.tasks.Count() > 0 && !force)
+                return Response.Conflict;
+            else
+            {
+                _context.Remove(userResult);
+                _context.SaveChanges();
+                return Response.Deleted;
+            }
         }
     }
 }

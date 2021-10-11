@@ -37,15 +37,36 @@ namespace Assignment4.Entities
             User user = null;
             if (task.AssignedToId != null)
             {
-                var userDTOResponse = new UserRepository().Read((int)task.AssignedToId);
+                var userDTOResponse = _context.Users.SingleOrDefault(x => x.id == task.AssignedToId);
 
                 user = new User
                 {
-                    id = userDTOResponse.Id,
-                    name = userDTOResponse.Name,
-                    email = userDTOResponse.Email,
-                    tasks = null,
+                    id = 0,
+                    name = userDTOResponse.name,
+                    email = userDTOResponse.email,
+                    tasks = userDTOResponse.tasks,
                 };
+            }
+
+            //Handle Tags
+            var cleanedTags = new List<Tag>();
+            foreach (var item in task.Tags)
+            {
+                var tag = _context.Tags.FirstOrDefault(x => x.name == item);
+                if (tag == null)
+                {
+                    var newTag = new Tag
+                    {
+                        name = item,
+                    };
+                    _context.Tags.Add(newTag);
+                    _context.SaveChanges();
+                    cleanedTags.Add(newTag);
+                }
+                else
+                {
+                    cleanedTags.Add(tag);
+                }
             }
 
             var taskElement = new Task
@@ -53,71 +74,107 @@ namespace Assignment4.Entities
                 title = task.Title,
                 assignedTo = user,
                 description = task.Description,
-                tags = (ICollection<Tag>)task.Tags,
+                tags = cleanedTags,
                 created = DateTime.UtcNow,
                 state = State.New,
                 stateUpdated = DateTime.UtcNow,
             };
             _context.Tasks.Add(taskElement);
             _context.SaveChanges();
-            Console.WriteLine(taskElement.id);
 
             return (Response.Created, taskElement.id);
         }
 
-
-        /*
-        MAYBE FOR TESTS??
-        public bool existsInDb(int taskId)
-        {
-            return FindById(taskId) != null;
-        }
-
-
-        public int getCount()
-        {
-            return _context.Tasks.Count();
-        }
-        */
-
         public IReadOnlyCollection<TaskDTO> ReadAll()
         {
-            /*List<TaskDTO> collection = new List<TaskDTO>();
-            foreach (var task in _context.Tasks.ToList())
+            var tasks = new List<TaskDTO>();
+            foreach (var item in _context.Tasks)
             {
-                var element = new TaskDTO
+                string assignedToName = null;
+                if (item.assignedTo != null)
                 {
-                    Id = task.id,
-                    Title = task.title,
-                    AssignedToName = task.assignedTo == null ? null : task.assignedTo.name,
-                    Tags = null,
-                    State = task.state,
-                };
-                collection.Add(element);
+                    assignedToName = item.assignedTo.name;
+                }
+                tasks.Add(new TaskDTO(item.id, item.title, assignedToName, (IReadOnlyCollection<string>)item.tags, item.state));
             }
-            return collection; */
-            throw new NotImplementedException();
+            return tasks;
         }
 
         public IReadOnlyCollection<TaskDTO> ReadAllRemoved()
         {
-            throw new NotImplementedException();
+            var tasks = new List<TaskDTO>();
+            foreach (var item in _context.Tasks)
+            {
+                if (item.state == State.Removed)
+                {
+                    string assignedToName = null;
+                    if (item.assignedTo != null)
+                    {
+                        assignedToName = item.assignedTo.name;
+                    }
+                    tasks.Add(new TaskDTO(item.id, item.title, assignedToName, (IReadOnlyCollection<string>)item.tags, item.state));
+                }
+            }
+            return tasks;
         }
 
         public IReadOnlyCollection<TaskDTO> ReadAllByTag(string tag)
         {
-            throw new NotImplementedException();
+            var tasks = new List<TaskDTO>();
+            foreach (var item in _context.Tasks)
+            {
+                foreach (var currentTag in item.tags)
+                {
+                    if (currentTag.name == tag)
+                    {
+                        string assignedToName = null;
+                        if (item.assignedTo != null)
+                        {
+                            assignedToName = item.assignedTo.name;
+                        }
+                        tasks.Add(new TaskDTO(item.id, item.title, assignedToName, (IReadOnlyCollection<string>)item.tags, item.state));
+                    }
+                }
+            }
+            return tasks;
         }
 
         public IReadOnlyCollection<TaskDTO> ReadAllByUser(int id)
         {
-            throw new NotImplementedException();
+            var tasks = new List<TaskDTO>();
+            foreach (var item in _context.Tasks)
+            {
+                if (item.assignedTo.id == id)
+                {
+                    string assignedToName = null;
+                    if (item.assignedTo != null)
+                    {
+                        assignedToName = item.assignedTo.name;
+                    }
+                    tasks.Add(new TaskDTO(item.id, item.title, assignedToName, (IReadOnlyCollection<string>)item.tags, item.state));
+                }
+            }
+            return tasks;
         }
 
         public IReadOnlyCollection<TaskDTO> ReadAllByState(State state)
         {
-            throw new NotImplementedException();
+            var tasks = new List<TaskDTO>();
+            foreach (var item in _context.Tasks)
+            {
+                if (item.state == state)
+                {
+                    string assignedToName = null;
+                    if (item.assignedTo != null)
+                    {
+                        assignedToName = item.assignedTo.name;
+                    }
+                    tasks.Add(new TaskDTO(item.id, item.title, assignedToName, (IReadOnlyCollection<string>)item.tags, item.state));
+                }
+            }
+            return tasks;
         }
+
 
         public TaskDetailsDTO Read(int id)
         {
@@ -132,28 +189,67 @@ namespace Assignment4.Entities
 
         public Response Update(TaskUpdateDTO task)
         {
-            /*
-            var result = context.Tasks.Single(s => s.id == task.Id);
-            result.title = task.Title;
-            if (task.AssignedToName != null)
+            //Create/update task must allow for editing tags.
+            User user = null;
+            if (task.AssignedToId != null)
             {
-                result.assignedTo = context.Users.Single(s => s.userName == task.AssignedToId);
+                var userDTOResponse = _context.Users.SingleOrDefault(x => x.id == task.AssignedToId);
+
+                user = new User
+                {
+                    id = 0,
+                    name = userDTOResponse.name,
+                    email = userDTOResponse.email,
+                    tasks = userDTOResponse.tasks,
+                };
             }
-            result.description = task.Description;
-            result.state = task.State;
-
-            //update tags HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-            context.SaveChanges();
-            */
-            throw new NotImplementedException();
+            var taskElement = new Task
+            {
+                title = task.Title,
+                assignedTo = user,
+                description = task.Description,
+                tags = (ICollection<Tag>)task.Tags,
+                state = task.State,
+                stateUpdated = DateTime.UtcNow,
+            };
+            var elementToBeUpdated = _context.Tasks.Single(x => x.id == task.Id);
+            //Maybe use the _context.UpdateRange here?
+            elementToBeUpdated = taskElement;
+            _context.SaveChanges();
+            return Response.Updated;
         }
 
-        Response ITaskRepository.Delete(int id)
+        public Response Delete(int taskId)
         {
-            /*_context.Tasks.Remove(_context.Tasks.Single(s => s.id == taskId));
-            _context.SaveChanges();*/
-            throw new NotImplementedException();
+            Task task = _context.Tasks.FirstOrDefault(t => t.id == taskId);
+            Response response;
+            if (task == null)
+            {
+                return Response.NotFound;
+            }
+            switch (task.state)
+            {
+                case State.New:
+                    _context.Remove(task);
+                    response = Response.Deleted;
+                    break;
+
+                case State.Active:
+                    task.state = State.Removed;
+                    response = Response.Deleted;
+                    break;
+
+                case State.Resolved:
+                case State.Closed:
+                case State.Removed:
+                    response = Response.Conflict;
+                    break;
+                default:
+                    response = Response.BadRequest;
+                    break;
+            }
+            _context.SaveChanges();
+            return response;
         }
     }
 }

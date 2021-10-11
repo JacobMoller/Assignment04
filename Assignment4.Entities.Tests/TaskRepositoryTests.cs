@@ -1,8 +1,6 @@
 using System;
-using Assignment4.Entities;
 using Xunit;
 using Assignment4.Core;
-using Assignment4;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -34,100 +32,197 @@ namespace Assignment4.Entities.Tests
             Assert.Equal(expected.Title, actual.Title);
             Assert.Equal(expected.Description, actual.Description);
             Assert.Equal(expected.Created, actual.Created, precision: TimeSpan.FromSeconds(5));
-            Assert.Null(actual.AssignedToName);
+            Assert.Equal(expected.AssignedToName, actual.AssignedToName);
             Assert.Null(actual.Tags);
             Assert.Equal(expected.State, actual.State);
             Assert.Equal(expected.StateUpdated, actual.StateUpdated, precision: TimeSpan.FromSeconds(5));
 
         }
-        /*
-                [Fact]
-                public void ReadAll()
-                {
-                    //Compare rows in the Task table with the size of the List of tasks
-                    var expected = ts.getCount();
 
-                    var actual = ts.All().Count();
+        [Fact]
+        public void ReadAll()
+        {
+            int a = ts.ReadAll().Count();
+            var taskDTO = new TaskCreateDTO
+            {
+                Title = "Make UI",
+                AssignedToId = 3,
+                Description = "hej",
+                Tags = null,
+            };
+            var task = ts.Create(taskDTO);
+            int b = ts.ReadAll().Count();
+            Assert.Equal(a, b - 1);
+            ts.Delete(task.TaskId);
+            int c = ts.ReadAll().Count();
+            Assert.Equal(a, c);
+        }
 
-                    Assert.Equal(expected, actual);
-                }
-
-                [Fact]
-                public void FindById()
-                {
-                    var ts = new TaskRepository();
-                    var expected = new TaskDetailsDTO
-                    {
-                        Id = 1,
-                        Title = "24/7",
-                        Description = "ut ultrices vel augue vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae donec pharetra magna vestibulum aliquet ultrices erat tortor sollicitudin mi sit amet lobortis sapien sapien non mi integer ac neque duis bibendum morbi non quam nec dui luctus rutrum nulla tellus in sagittis dui vel nisl duis ac nibh fusce lacus purus aliquet at feugiat non pretium quis lectus suspendisse potenti in eleifend quam a odio in hac habitasse platea dictumst maecenas ut massa quis augue luctus tincidunt nulla mollis molestie lorem quisque ut erat curabitur gravida nisi at nibh in hac habitasse platea dictumst aliquam augue quam sollicitudin vitae consectetuer eget rutrum at lorem integer tincidunt ante vel ipsum praesent blandit lacinia erat vestibulum sed magna at nunc commodo placerat praesent blandit nam nulla integer pede justo",
-                        AssignedToId = 860,
-                        AssignedToName = "Anatol Crosseland",
-                        AssignedToEmail = "acrosselandqm@squidoo.com",
-                        Tags = null,
-                        State = State.Active,
-                    };
-
-                    var actual = ts.FindById(expected.Id);
-                    Assert.Equal(expected, actual);
-                }
-
-
-                [Fact]
-                public void Delete()
-                {
-                    var ts = new TaskRepository();
-
-                    var taskDTO = new TaskDTO
-                    {
-                        Title = "Make UI",
-                        State = State.New,
-                    };
-                    var taskId = ts.Create(taskDTO);
-
-                    ts.Delete(taskId);
-                    Assert.False(ts.existsInDb(taskId));
-                }
-
-                [Fact]
-                public void Update()
-                {
-                    //New task
-                    var newTaskDTO = new TaskDTO
-                    {
-                        Title = "Make UI",
-                        State = State.New,
-                    };
-                    int taskId = ts.Create(newTaskDTO);
-                    //update task
-                    var updatedTaskDTO = new TaskDTO
-                    {
-                        Id = taskId,
-                        Title = "Redesign UI",
-                        State = State.Active,
-                    };
-
-                    ts.Update(updatedTaskDTO);
-
-                    TaskDetailsDTO findByResult = ts.FindById(updatedTaskDTO.Id);
-
-                    var actual = new TaskDTO
-                    {
-                        Id = findByResult.Id,
-                        Title = findByResult.Title,
-                        Description = findByResult.Description,
-                        AssignedToId = findByResult.AssignedToId,
-                        Tags = (IReadOnlyCollection<string>)findByResult.Tags,
-                        State = findByResult.State,
-                    };
-
-                    Assert.Equal(updatedTaskDTO, actual);
-                }*/
 
         /*[Fact]
-        public void Dispose()
+        public void ReadAllRemoved()
         {
-            Assert.True(false);
+
+
+            int a = ts.ReadAllRemoved().Count();
+            var taskDTO = new TaskCreateDTO
+            {
+                Title = "Make UI",
+                AssignedToId = 4,
+                Description = "hej",
+                Tags = null,
+            };
+
+            (Response oldTaskResponse, int id) = ts.Create(taskDTO);
+            Assert.Equal(Response.Created, oldTaskResponse);
+
+            var updateTask = new TaskUpdateDTO
+            {
+                Title = "Making UI",
+                AssignedToId = 2,
+                Description = "farvel",
+                Tags = null,
+                Id = id,
+                State = State.Active,
+            };
+
+            var updatedtask = ts.Update(updateTask);
+
+            int b = ts.ReadAllRemoved().Count();
+            ts.Delete(updateTask.Id);
+            Assert.Equal(a, b + 1);
         }*/
+
+        [Fact]
+        public void ReadAllByTag()
+        {
+            var taskDTOOne = new TaskCreateDTO
+            {
+                Title = "Make UI",
+                AssignedToId = 4,
+                Description = "hej",
+                Tags = new List<string> { "UI" },
+            };
+            ts.Create(taskDTOOne);
+
+            int a = ts.ReadAllByTag("UI").Count();
+
+            var taskDTOTwo = new TaskCreateDTO
+            {
+                Title = "Make Other UI",
+                AssignedToId = 4,
+                Description = "hej",
+                Tags = new List<string> { "UI" },
+            };
+            ts.Create(taskDTOTwo);
+
+            int b = ts.ReadAllByTag("UI").Count();
+            Assert.Equal(a, b - 1);
+        }
+
+        [Fact]
+        public void ReadAllByUser()
+        {
+
+        }
+
+        [Fact]
+        public void ReadAllByState()
+        {
+            var test = new List<string>().Count();
+            int a = ts.ReadAllByState(State.New).Count();
+            var taskDTO = new TaskCreateDTO
+            {
+                Title = "Make UI",
+                AssignedToId = 3,
+                Description = "hej",
+                Tags = null,
+            };
+            var task = ts.Create(taskDTO);
+            int b = ts.ReadAllByState(State.New).Count();
+            Assert.Equal(a, b - 1);
+            ts.Delete(task.TaskId);
+            int c = ts.ReadAllByState(State.New).Count();
+            Assert.Equal(a, c);
+        }
+
+        [Fact]
+        public void Read()
+        {
+            var taskDTO = new TaskCreateDTO
+            {
+                Title = "Make UI",
+                AssignedToId = 2,
+                Description = "hej",
+                Tags = null,
+            };
+            var task = ts.Create(taskDTO);
+            var actual = ts.Read(task.TaskId);
+
+            var expected = new TaskDetailsDTO(task.TaskId, "Make UI", "hej", DateTime.UtcNow, "Lola Carrodus", null, State.New, DateTime.UtcNow);
+
+            Assert.Equal(expected.Id, actual.Id);
+            Assert.Equal(expected.Title, actual.Title);
+            Assert.Equal(expected.Description, actual.Description);
+            Assert.Equal(expected.Created, actual.Created, precision: TimeSpan.FromSeconds(5));
+            Assert.Equal(expected.AssignedToName, actual.AssignedToName);
+            Assert.Null(actual.Tags);
+            Assert.Equal(expected.State, actual.State);
+            Assert.Equal(expected.StateUpdated, actual.StateUpdated, precision: TimeSpan.FromSeconds(5));
+
+
+
+
+        }
+
+        [Fact]
+        public void Update()
+        {
+            var taskDTO = new TaskCreateDTO
+            {
+                Title = "Make UI",
+                AssignedToId = 1,
+                Description = "hej",
+                Tags = null,
+
+            };
+            (Response oldTaskResponse, int id) = ts.Create(taskDTO);
+            Assert.Equal(Response.Created, oldTaskResponse);
+
+            var newTaskDTO = new TaskUpdateDTO
+            {
+                Title = "Making UI",
+                AssignedToId = 2,
+                Description = "farvel",
+                Tags = null, //TODO: Use different tags
+                Id = id,
+                State = State.Active,
+            };
+            var newTaskResponse = ts.Update(newTaskDTO);
+            Assert.Equal(Response.Updated, newTaskResponse);
+        }
+
+        [Fact]
+        public void Delete()
+        {
+            var taskDTO = new TaskCreateDTO
+            {
+                Title = "Make UI",
+                AssignedToId = 1,
+                Description = "hej",
+                Tags = null,
+            };
+            var createdResponse = ts.Create(taskDTO);
+
+            //
+
+            Assert.Equal(Response.Created, createdResponse.Response);
+
+            var deleteResponse = ts.Delete(createdResponse.TaskId);
+
+            Assert.Equal(Response.Deleted, deleteResponse);
+
+            Assert.Null(ts.Read(createdResponse.TaskId));
+        }
     }
 }

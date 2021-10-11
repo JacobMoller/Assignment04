@@ -8,7 +8,7 @@ namespace Assignment4.Entities
     public class Tag
     {
         [Key]
-        public int tagId { get; set; }
+        public int id { get; set; }
 
         [Required]
         [StringLength(50)]
