@@ -53,8 +53,8 @@ namespace Assignment4.Entities
             {
                 foreach (var item in task.Tags)
                 {
-                    var tag = _context.Tags.Where(x => x.name == item).FirstOrDefault();
-                    if (tag == null)
+                    var tag = _context.Tags.Where(x => x.name == item);
+                    if (tag.Count() == 0)
                     {
                         var newTag = new Tag
                         {
@@ -68,7 +68,7 @@ namespace Assignment4.Entities
                     }
                     else
                     {
-                        cleanedTags.Add(tag);
+                        cleanedTags.Add(tag.First());
                     }
                 }
             }

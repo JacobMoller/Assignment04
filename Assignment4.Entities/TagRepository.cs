@@ -32,7 +32,7 @@ namespace Assignment4.Entities
         public (Response Response, int TagId) Create(TagCreateDTO tag)
         {
             var tagResult = _context.Tags.Where(t => t.name == tag.Name);
-            if (tagResult.ToList().Count == 0)
+            if (tagResult.Count() == 0)
             {
                 var newTagElement = new Tag
                 {
@@ -44,7 +44,7 @@ namespace Assignment4.Entities
             }
             else
             {
-                return (Response.Conflict, 0);
+                return (Response.Conflict, tagResult.First().id);
             }
             /*foreach (var item in _context.Tags)
             {
@@ -65,15 +65,32 @@ namespace Assignment4.Entities
 
         public Response Delete(int tagId, bool force = false)
         {
-            var tagResult = _context.Tags.FirstOrDefault(t => t.id == tagId);
-            Console.WriteLine(tagResult.tasks == null);
-            if (tagResult.tasks != null && !force)
-                return Response.Conflict;
+            var tagResult = _context.Tags.Where(t => t.id == tagId);
+            if (tagResult.Count() > 0)
+            {
+                if (tagResult.First().tasks == null)
+                {
+                    if (force)
+                    {
+                        _context.Remove(tagResult.First());
+                        _context.SaveChanges();
+                        return Response.Deleted;
+                    }
+                    else
+                    {
+                        return Response.Conflict;
+                    }
+                }
+                else
+                {
+                    _context.Remove(tagResult.First());
+                    _context.SaveChanges();
+                    return Response.Deleted;
+                }
+            }
             else
             {
-                _context.Remove(tagResult);
-                _context.SaveChanges();
-                return Response.Deleted;
+                return Response.BadRequest;
             }
         }
 
