@@ -68,7 +68,7 @@ namespace Assignment4.Entities
             var tagResult = _context.Tags.Where(t => t.id == tagId);
             if (tagResult.Count() > 0)
             {
-                if (tagResult.First().tasks == null)
+                if (tagResult.First().tasks != null)
                 {
                     if (force)
                     {
@@ -124,6 +124,22 @@ namespace Assignment4.Entities
             elementToBeUpdated = tagElement;
             _context.SaveChanges();
             return Response.Updated;
+        }
+
+        public Response ConnectToTask(int tagId, int taskId)
+        {
+            var tag = _context.Tags.FirstOrDefault(x => x.id == tagId);
+            var task = _context.Tasks.FirstOrDefault(x => x.id == taskId);
+            if (tag != null && task != null)
+            {
+                tag.tasks = new List<Task>() { task };
+                _context.SaveChanges();
+                return Response.Updated;
+            }
+            else
+            {
+                return Response.BadRequest;
+            }
         }
     }
 }

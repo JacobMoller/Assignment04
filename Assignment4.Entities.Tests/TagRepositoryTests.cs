@@ -105,46 +105,27 @@ namespace Assignment4.Entities.Tests
             };
             var response = ts.Create(tag);
 
-            var taskCreateDTO = new TaskCreateDTO
-            {
-                Title = "Make UIs ect.",
-                AssignedToId = 4,
-                Description = "We're making UI and other things.",
-                Tags = new List<string> { "User Interface" },
-            };
+            ts.ConnectToTask(response.TagId, 1);
 
-            var taskRepo = new TaskRepository();
-            var taskResponse = taskRepo.Create(taskCreateDTO);
-
-            var tagDeleteResponse = ts.Delete(response.TagId);
+            var tagDeleteResponse = ts.Delete(response.TagId, false);
             Assert.Equal(Response.Conflict, tagDeleteResponse);
             ts.Delete(response.TagId, true);
-            Console.WriteLine("Task to be deleted");
-            Console.WriteLine(taskResponse.TaskId);
-            taskRepo.Delete(taskResponse.TaskId);
         }
 
-        /*[Fact]
+        [Fact]
         public void DeleteSuccesful_WithForce()
         {
             TagCreateDTO tag = new TagCreateDTO
             {
-                Name = "UI ect.",
+                Name = "User Interface",
             };
-            (Response tagResponse, int id) = ts.Create(tag);
+            var response = ts.Create(tag);
 
-            var taskCreateDTO = new TaskCreateDTO
-            {
-                Title = "Make UI ect.",
-                AssignedToId = 5,
-                Description = "We're making UI and other things.",
-                Tags = new List<string> { "UI ect." },
-            };
+            ts.ConnectToTask(response.TagId, 1);
 
-            var tagDeleteResponse = ts.Delete(id, true);
+            var tagDeleteResponse = ts.Delete(response.TagId, true);
             Assert.Equal(Response.Deleted, tagDeleteResponse);
-            Assert.Null(ts.Read(id));
-        }*/
+        }
 
     }
 }

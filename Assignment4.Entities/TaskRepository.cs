@@ -257,13 +257,15 @@ namespace Assignment4.Entities
             switch (task.state)
             {
                 case State.New:
-                    _context.Remove(task);
+                    _context.Tasks.Remove(task);
+                    _context.SaveChanges();
                     response = Response.Deleted;
                     break;
 
                 case State.Active:
                     task.state = State.Removed;
                     response = Response.Deleted;
+                    _context.SaveChanges();
                     break;
 
                 case State.Resolved:
@@ -275,7 +277,6 @@ namespace Assignment4.Entities
                     response = Response.BadRequest;
                     break;
             }
-            _context.SaveChanges();
             return response;
         }
     }
