@@ -60,8 +60,16 @@ namespace Assignment4.Entities
 
         public UserDTO Read(int userId)
         {
-            var user = _context.Users.FirstOrDefault(s => s.id == userId);
-            return new UserDTO(user.id, user.name, user.email);
+            User user = _context.Users.FirstOrDefault(s => s.id == userId);
+            if (user != null)
+            {
+                return new UserDTO(user.id, user.name, user.email);
+            }
+            else
+            {
+                return null;
+            }
+
         }
 
         public Response Update(UserUpdateDTO user)
@@ -71,17 +79,24 @@ namespace Assignment4.Entities
                 name = user.Name,
                 email = user.Email,
             };
-            var elementToBeUpdated = _context.Users.Single(x => x.id == user.Id);
+            var elementToBeUpdated = _context.Users.FirstOrDefault(x => x.id == user.Id);
             //Maybe use the _context.UpdateRange here?
-            elementToBeUpdated = userElement;
-            _context.SaveChanges();
-            return Response.Updated;
+            if (elementToBeUpdated != null)
+            {
+                elementToBeUpdated = userElement;
+                _context.SaveChanges();
+                return Response.Updated;
+            }
+            else
+            {
+                return Response.BadRequest;
+            }
         }
 
         public Response Delete(int userId, bool force = false)
         {
             var userResult = _context.Users.FirstOrDefault(u => u.id == userId);
-            if (userResult.tasks.Count() > 0 && !force)
+            if (userResult != null && userResult.tasks != null && !force)
                 return Response.Conflict;
             else
             {

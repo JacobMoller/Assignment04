@@ -6,7 +6,7 @@ namespace Assignment4.Entities.Tests
     public class UserRepositoryTests
     {
 
-        /*UserRepository us = new UserRepository();
+        UserRepository us = new UserRepository();
 
         [Fact]
         public void Create()
@@ -18,11 +18,11 @@ namespace Assignment4.Entities.Tests
             };
 
             var createResponse = us.Create(userCreateDTO);
-
-            Assert.Equal(Response.Created, createResponse.Response);
-
             var expected = new UserDTO(createResponse.UserId, "John Doe", "john@doe.com");
             var actual = us.Read(createResponse.UserId);
+
+            Assert.Equal(Response.Created, createResponse.Response);
+            us.Delete(createResponse.UserId, true);
             Assert.Equal(expected.Id, actual.Id);
             Assert.Equal(expected.Name, actual.Name);
             Assert.Equal(expected.Email, actual.Email);
@@ -31,17 +31,17 @@ namespace Assignment4.Entities.Tests
         [Fact]
         public void ReadAll()
         {
-            int a = us.ReadAll().Count;
             var userDTO = new UserCreateDTO
             {
-                Name = "John Doe",
-                Email = "john@doe.com",
+                Name = "Jenny Doe",
+                Email = "jenny@doe.com",
             };
+            int a = us.ReadAll().Count;
             var user = us.Create(userDTO);
             int b = us.ReadAll().Count;
-            Assert.Equal(a, b - 1);
             us.Delete(user.UserId);
             int c = us.ReadAll().Count;
+            Assert.Equal(a, b - 1);
             Assert.Equal(a, c);
         }
 
@@ -57,6 +57,7 @@ namespace Assignment4.Entities.Tests
             var actual = us.Read(user.UserId);
 
             var expected = new UserDTO(user.UserId, "John Doe", "john@doe.com");
+            us.Delete(user.UserId, true);
 
             Assert.Equal(expected.Id, actual.Id);
             Assert.Equal(expected.Name, actual.Name);
@@ -76,11 +77,13 @@ namespace Assignment4.Entities.Tests
 
             var newUserDTO = new UserUpdateDTO
             {
+                Id = id,
                 Name = "John Doe",
                 Email = "john@doe.dk",
             };
             var newTaskResponse = us.Update(newUserDTO);
             Assert.Equal(Response.Updated, newTaskResponse);
+            us.Delete(id, true);
         }
 
         [Fact]
@@ -97,11 +100,11 @@ namespace Assignment4.Entities.Tests
 
             Assert.Equal(Response.Created, createdResponse.Response);
 
-            var deleteResponse = us.Delete(createdResponse.UserId);
+            var deleteResponse = us.Delete(createdResponse.UserId, true);
 
             Assert.Equal(Response.Deleted, deleteResponse);
 
             Assert.Null(us.Read(createdResponse.UserId));
-        }*/
+        }
     }
 }

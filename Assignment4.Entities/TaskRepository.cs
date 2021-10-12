@@ -34,17 +34,13 @@ namespace Assignment4.Entities
 
         public (Response Response, int TaskId) Create(TaskCreateDTO task)
         {
-            User user = null;
+            UserDTO user = null;
+            User userDTOResponse = null;
             if (task.AssignedToId != null)
             {
-                var userDTOResponse = _context.Users.SingleOrDefault(x => x.id == task.AssignedToId);
+                userDTOResponse = _context.Users.SingleOrDefault(x => x.id == task.AssignedToId);
 
-                user = new User
-                {
-                    name = userDTOResponse.name,
-                    email = userDTOResponse.email,
-                    tasks = userDTOResponse.tasks,
-                };
+                user = new UserDTO(userDTOResponse.id, userDTOResponse.name, userDTOResponse.email);
             }
 
             //Handle Tags
@@ -76,7 +72,7 @@ namespace Assignment4.Entities
             var taskElement = new Task
             {
                 title = task.Title,
-                assignedTo = user,
+                assignedTo = userDTOResponse,
                 description = task.Description,
                 tags = cleanedTags,
                 created = DateTime.UtcNow,
