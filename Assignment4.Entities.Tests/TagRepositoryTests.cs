@@ -1,7 +1,5 @@
-using System;
 using Xunit;
 using Assignment4.Core;
-using System.Collections.Generic;
 
 namespace Assignment4.Entities.Tests
 {
@@ -9,7 +7,7 @@ namespace Assignment4.Entities.Tests
     {
         TagRepository ts = new TagRepository();
 
-        /*[Fact]
+        [Fact]
         public void CreateDTO()
         {
             var tagCreateDTO = new TagCreateDTO
@@ -94,7 +92,7 @@ namespace Assignment4.Entities.Tests
 
             Assert.Equal(Response.Deleted, tagDeleteResponse);
             Assert.Null(ts.Read(id));
-        }*/
+        }
 
         [Fact]
         public void DeleteUnsuccesful_ForceMissing()
