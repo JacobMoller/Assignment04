@@ -12,20 +12,8 @@ namespace Assignment4.Entities
     {
         KanbanContext _context;
 
-        public UserRepository()
+        public UserRepository(KanbanContext context)
         {
-            var configuration = new ConfigurationBuilder()
-                    .SetBasePath(Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..//..//..//..//")))
-                    .AddUserSecrets<TaskRepository>()
-                    .AddJsonFile("appsettings.json")
-                    .Build();
-
-            var connectionString = configuration.GetConnectionString("KanbanBoard");
-
-            var optionsBuilder = new DbContextOptionsBuilder<KanbanContext>().UseSqlServer(connectionString);
-
-            var context = new KanbanContext(optionsBuilder.Options);
-
             _context = context;
         }
         public (Response Response, int UserId) Create(UserCreateDTO user)
