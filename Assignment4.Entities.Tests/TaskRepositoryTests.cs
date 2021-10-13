@@ -3,13 +3,57 @@ using Xunit;
 using Assignment4.Core;
 using System.Linq;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.Sqlite;
 
 namespace Assignment4.Entities.Tests
 {
     public class TaskRepositoryTests
     {
+        private readonly KanbanContext _context;
+        private readonly TaskRepository _repo;
+        public TaskRepositoryTests()
+        {
+            var connection = new SqliteConnection("Filename=:memory:");
+            connection.Open();
+            var builder = new DbContextOptionsBuilder<KanbanContext>();
+            builder.UseSqlite(connection);
+            var context = new KanbanContext(builder.Options);
+            context.Database.EnsureCreated();
+            context.Users.Add(new User
+            {
+                id = 1,
+                name = "John Taylor",
+                email = "john.L.T@email.dk",
+                tasks = null
+            });
+            context.Users.Add(new User
+            {
+                id = 2,
+                name = "Dee Doe",
+                email = "deedoe@gmail.com",
+                tasks = null
+            });
+            context.Users.Add(new User
+            {
+                id = 3,
+                name = "Philip P. Cyan",
+                email = "ppcyan@itu.dk",
+                tasks = null
+            });
+            context.Users.Add(new User
+            {
+                id = 4,
+                name = "FirstName LastName",
+                email = "first.last@gmail.co",
+                tasks = null
+            });
+            context.SaveChanges();
 
-        TaskRepository ts = new TaskRepository();
+            _context = context;
+            _repo = new TaskRepository(_context);
+
+        }
 
         [Fact]
         public void CreatingTask_ValidatingThatAttributesAreSet()
@@ -22,12 +66,12 @@ namespace Assignment4.Entities.Tests
                 Tags = null
             };
 
-            (Response response, int id) = ts.Create(taskCreateDTO);
+            (Response response, int id) = _repo.Create(taskCreateDTO);
 
             Assert.Equal(Response.Created, response);
 
-            var expected = new TaskDetailsDTO(id, "Make UI", "Lorem Ipsum", DateTime.UtcNow, "Lola Carrodus", null, State.New, DateTime.UtcNow);
-            var actual = ts.Read(id);
+            var expected = new TaskDetailsDTO(id, "Make UI", "Lorem Ipsum", DateTime.UtcNow, "Dee Doe", null, State.New, DateTime.UtcNow);
+            var actual = _repo.Read(id);
             Assert.Equal(expected.Id, actual.Id);
             Assert.Equal(expected.Title, actual.Title);
             Assert.Equal(expected.Description, actual.Description);
@@ -41,7 +85,7 @@ namespace Assignment4.Entities.Tests
         [Fact]
         public void CountNumberOfTasks_AddOne_ValidateIncremention()
         {
-            int a = ts.ReadAll().Count();
+            int a = _repo.ReadAll().Count();
             var taskDTO = new TaskCreateDTO
             {
                 Title = "Make UI",
@@ -49,11 +93,11 @@ namespace Assignment4.Entities.Tests
                 Description = "hej",
                 Tags = null,
             };
-            var task = ts.Create(taskDTO);
-            int b = ts.ReadAll().Count();
+            var task = _repo.Create(taskDTO);
+            int b = _repo.ReadAll().Count();
             Assert.Equal(a, b - 1);
-            ts.Delete(task.TaskId);
-            int c = ts.ReadAll().Count();
+            _repo.Delete(task.TaskId);
+            int c = _repo.ReadAll().Count();
             Assert.Equal(a, c);
         }
 
@@ -61,7 +105,7 @@ namespace Assignment4.Entities.Tests
         [Fact]
         public void CountNumberOfRemovedTasks_RemoveOne_ValidateIncremention()
         {
-            int a = ts.ReadAllRemoved().Count();
+            int a = _repo.ReadAllRemoved().Count();
             var taskDTO = new TaskCreateDTO
             {
                 Title = "Make UI",
@@ -70,7 +114,7 @@ namespace Assignment4.Entities.Tests
                 Tags = null,
             };
 
-            (Response oldTaskResponse, int id) = ts.Create(taskDTO);
+            (Response oldTaskResponse, int id) = _repo.Create(taskDTO);
             Assert.Equal(Response.Created, oldTaskResponse);
 
             var updateTask = new TaskUpdateDTO
@@ -83,12 +127,12 @@ namespace Assignment4.Entities.Tests
                 State = State.Active,
             };
 
-            var updatedtask = ts.Update(updateTask);
+            var updatedtask = _repo.Update(updateTask);
 
             Assert.Equal(Response.Updated, updatedtask);
 
-            ts.Delete(updateTask.Id);
-            int b = ts.ReadAllRemoved().Count();
+            _repo.Delete(updateTask.Id);
+            int b = _repo.ReadAllRemoved().Count();
             Assert.Equal(a, b - 1);
         }
 
@@ -102,9 +146,9 @@ namespace Assignment4.Entities.Tests
                 Description = "hej",
                 Tags = new List<string>() { "UI" },
             };
-            ts.Create(taskDTOOne);
+            _repo.Create(taskDTOOne);
 
-            int a = ts.ReadAllByTag("UI").Count();
+            int a = _repo.ReadAllByTag("UI").Count();
 
             var taskDTOTwo = new TaskCreateDTO
             {
@@ -113,9 +157,9 @@ namespace Assignment4.Entities.Tests
                 Description = "hej",
                 Tags = new List<string> { "UI" },
             };
-            ts.Create(taskDTOTwo);
+            _repo.Create(taskDTOTwo);
 
-            int b = ts.ReadAllByTag("UI").Count();
+            int b = _repo.ReadAllByTag("UI").Count();
             Assert.Equal(a, b - 1);
         }
 
@@ -129,9 +173,9 @@ namespace Assignment4.Entities.Tests
                 Description = "hej",
                 Tags = new List<string>() { "UI" },
             };
-            ts.Create(taskDTOOne);
+            _repo.Create(taskDTOOne);
 
-            int a = ts.ReadAllByUser(4).Count();
+            int a = _repo.ReadAllByUser(4).Count();
 
             var taskDTOTwo = new TaskCreateDTO
             {
@@ -140,9 +184,9 @@ namespace Assignment4.Entities.Tests
                 Description = "hej",
                 Tags = new List<string> { "UI" },
             };
-            ts.Create(taskDTOTwo);
+            _repo.Create(taskDTOTwo);
 
-            int b = ts.ReadAllByUser(4).Count();
+            int b = _repo.ReadAllByUser(4).Count();
             Assert.Equal(a, b - 1);
         }
 
@@ -150,7 +194,7 @@ namespace Assignment4.Entities.Tests
         public void CountNumberOfTasksWithStateNew_AddOne_ValidateIncremention()
         {
             var test = new List<string>().Count();
-            int a = ts.ReadAllByState(State.New).Count();
+            int a = _repo.ReadAllByState(State.New).Count();
             var taskDTO = new TaskCreateDTO
             {
                 Title = "Make UI",
@@ -158,11 +202,11 @@ namespace Assignment4.Entities.Tests
                 Description = "hej",
                 Tags = null,
             };
-            var task = ts.Create(taskDTO);
-            int b = ts.ReadAllByState(State.New).Count();
+            var task = _repo.Create(taskDTO);
+            int b = _repo.ReadAllByState(State.New).Count();
             Assert.Equal(a, b - 1);
-            ts.Delete(task.TaskId);
-            int c = ts.ReadAllByState(State.New).Count();
+            _repo.Delete(task.TaskId);
+            int c = _repo.ReadAllByState(State.New).Count();
             Assert.Equal(a, c);
         }
 
@@ -176,10 +220,10 @@ namespace Assignment4.Entities.Tests
                 Description = "hej",
                 Tags = null,
             };
-            var task = ts.Create(taskDTO);
-            var actual = ts.Read(task.TaskId);
+            var task = _repo.Create(taskDTO);
+            var actual = _repo.Read(task.TaskId);
 
-            var expected = new TaskDetailsDTO(task.TaskId, "Make UI", "hej", DateTime.UtcNow, "Lola Carrodus", null, State.New, DateTime.UtcNow);
+            var expected = new TaskDetailsDTO(task.TaskId, "Make UI", "hej", DateTime.UtcNow, "Dee Doe", null, State.New, DateTime.UtcNow);
 
             Assert.Equal(expected.Id, actual.Id);
             Assert.Equal(expected.Title, actual.Title);
@@ -202,7 +246,7 @@ namespace Assignment4.Entities.Tests
                 Tags = null,
 
             };
-            (Response oldTaskResponse, int id) = ts.Create(taskDTO);
+            (Response oldTaskResponse, int id) = _repo.Create(taskDTO);
             Assert.Equal(Response.Created, oldTaskResponse);
 
             var newTaskDTO = new TaskUpdateDTO
@@ -214,10 +258,10 @@ namespace Assignment4.Entities.Tests
                 Id = id,
                 State = State.Active,
             };
-            var newTaskResponse = ts.Update(newTaskDTO);
+            var newTaskResponse = _repo.Update(newTaskDTO);
             Assert.Equal(Response.Updated, newTaskResponse);
 
-            var actual = ts.Read(newTaskDTO.Id);
+            var actual = _repo.Read(newTaskDTO.Id);
 
             Assert.Equal("Making UI", actual.Title);
             Assert.Equal("farvel", actual.Description);
@@ -235,15 +279,15 @@ namespace Assignment4.Entities.Tests
                 Description = "hej",
                 Tags = null,
             };
-            var createdResponse = ts.Create(taskDTO);
+            var createdResponse = _repo.Create(taskDTO);
 
             Assert.Equal(Response.Created, createdResponse.Response);
 
-            var deleteResponse = ts.Delete(createdResponse.TaskId);
+            var deleteResponse = _repo.Delete(createdResponse.TaskId);
 
             Assert.Equal(Response.Deleted, deleteResponse);
 
-            Assert.Null(ts.Read(createdResponse.TaskId));
+            Assert.Null(_repo.Read(createdResponse.TaskId));
         }
     }
 }

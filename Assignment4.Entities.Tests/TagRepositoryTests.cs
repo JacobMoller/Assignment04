@@ -1,11 +1,36 @@
 using Xunit;
 using Assignment4.Core;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 
 namespace Assignment4.Entities.Tests
 {
     public class TagRepositoryTests
     {
-        TagRepository ts = new TagRepository();
+
+        private readonly KanbanContext _context;
+        private readonly TagRepository _repo;
+        public TagRepositoryTests()
+        {
+            var connection = new SqliteConnection("Filename=:memory:");
+            connection.Open();
+            var builder = new DbContextOptionsBuilder<KanbanContext>();
+            builder.UseSqlite(connection);
+            var context = new KanbanContext(builder.Options);
+            context.Database.EnsureCreated();
+            context.Tasks.Add(new Task
+            {
+                id = 1,
+                title = "Kort",
+                state = State.New,
+            });
+            context.SaveChanges();
+            _context = context;
+            _repo = new TagRepository(_context);
+
+        }
+
+
 
         [Fact]
         public void CreatingTag_ValidatingThatAttributesAreSet()
@@ -15,15 +40,15 @@ namespace Assignment4.Entities.Tests
                 Name = "Test"
             };
 
-            var response = ts.Create(tagCreateDTO);
+            var response = _repo.Create(tagCreateDTO);
 
             Assert.Equal(Response.Created, response.Response);
 
             var expected = new TagDTO(response.TagId, "Test");
-            var actual = ts.Read(response.TagId);
+            var actual = _repo.Read(response.TagId);
             Assert.Equal(expected.Id, actual.Id);
             Assert.Equal(expected.Name, actual.Name);
-            ts.Delete(response.TagId, false);
+            _repo.Delete(response.TagId, false);
         }
 
 
@@ -35,27 +60,27 @@ namespace Assignment4.Entities.Tests
                 Name = "Innovation"
             };
 
-            var response = ts.Create(tag);
+            var response = _repo.Create(tag);
 
             TagDTO tagDTO = new TagDTO(response.TagId, tag.Name);
 
-            Assert.Equal(tagDTO, ts.Read(response.TagId));
-            ts.Delete(response.TagId, false);
+            Assert.Equal(tagDTO, _repo.Read(response.TagId));
+            _repo.Delete(response.TagId, false);
         }
 
         [Fact]
         public void CountNumberOfTags_AddOne_ValidateIncremention()
         {
-            int a = ts.ReadAll().Count;
+            int a = _repo.ReadAll().Count;
             var tagDTO = new TagCreateDTO
             {
                 Name = "Make UI",
             };
-            var tag = ts.Create(tagDTO);
-            int b = ts.ReadAll().Count;
+            var tag = _repo.Create(tagDTO);
+            int b = _repo.ReadAll().Count;
             Assert.Equal(a, b - 1);
-            ts.Delete(tag.TagId);
-            int c = ts.ReadAll().Count;
+            _repo.Delete(tag.TagId);
+            int c = _repo.ReadAll().Count;
             Assert.Equal(a, c);
         }
 
@@ -66,7 +91,7 @@ namespace Assignment4.Entities.Tests
             {
                 Name = "Make UI",
             };
-            var response = ts.Create(tagDTO);
+            var response = _repo.Create(tagDTO);
             Assert.Equal(Response.Created, response.Response);
 
             var newTagDTO = new TagUpdateDTO
@@ -74,9 +99,9 @@ namespace Assignment4.Entities.Tests
                 Id = response.TagId,
                 Name = "UI",
             };
-            var newTaskResponse = ts.Update(newTagDTO);
+            var newTaskResponse = _repo.Update(newTagDTO);
             Assert.Equal(Response.Updated, newTaskResponse);
-            ts.Delete(response.TagId, false);
+            _repo.Delete(response.TagId, false);
         }
 
         [Fact]
@@ -86,14 +111,14 @@ namespace Assignment4.Entities.Tests
             {
                 Name = "User Interface",
             };
-            (Response tagResponse, int id) = ts.Create(tag);
+            (Response tagResponse, int id) = _repo.Create(tag);
 
             Assert.Equal(Response.Created, tagResponse);
 
-            var tagDeleteResponse = ts.Delete(id);
+            var tagDeleteResponse = _repo.Delete(id);
 
             Assert.Equal(Response.Deleted, tagDeleteResponse);
-            Assert.Null(ts.Read(id));
+            Assert.Null(_repo.Read(id));
         }
 
         [Fact]
@@ -103,29 +128,29 @@ namespace Assignment4.Entities.Tests
             {
                 Name = "User Interface",
             };
-            var response = ts.Create(tag);
+            var response = _repo.Create(tag);
             Assert.Equal(Response.Created, response.Response);
 
-            ts.ConnectToTask(response.TagId, 1);
+            _repo.ConnectToTask(response.TagId, 1);
 
-            var tagDeleteResponse = ts.Delete(response.TagId, false);
+            var tagDeleteResponse = _repo.Delete(response.TagId, false);
             Assert.Equal(Response.Conflict, tagDeleteResponse);
-            ts.Delete(response.TagId, true);
+            _repo.Delete(response.TagId, true);
         }
 
         [Fact]
-        public void CreateTagAndValidateCreation_DeleteTagUseForce_ReturnsDeleted()
+        public void CreateTagAndValidateCreation_ConnectToUser_DeleteTagUseForce_ReturnsDeleted()
         {
             TagCreateDTO tag = new TagCreateDTO
             {
                 Name = "User Interface",
             };
-            var response = ts.Create(tag);
+            var response = _repo.Create(tag);
             Assert.Equal(Response.Created, response.Response);
 
-            ts.ConnectToTask(response.TagId, 1);
+            _repo.ConnectToTask(response.TagId, 1);
 
-            var tagDeleteResponse = ts.Delete(response.TagId, true);
+            var tagDeleteResponse = _repo.Delete(response.TagId, true);
             Assert.Equal(Response.Deleted, tagDeleteResponse);
         }
 
