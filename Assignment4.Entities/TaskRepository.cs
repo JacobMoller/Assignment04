@@ -43,7 +43,6 @@ namespace Assignment4.Entities
                 user = new UserDTO(userDTOResponse.id, userDTOResponse.name, userDTOResponse.email);
             }
 
-            //Handle Tags
             var cleanedTags = new List<Tag>();
             if (task.Tags != null)
             {
@@ -132,16 +131,19 @@ namespace Assignment4.Entities
             var tasks = new List<TaskDTO>();
             foreach (var item in _context.Tasks)
             {
-                foreach (var currentTag in item.tags)
+                if (item.tags != null)
                 {
-                    if (currentTag.name == tag)
+                    foreach (var currentTag in item.tags)
                     {
-                        string assignedToName = null;
-                        if (item.assignedTo != null)
+                        if (currentTag.name == tag)
                         {
-                            assignedToName = item.assignedTo.name;
+                            string assignedToName = null;
+                            if (item.assignedTo != null)
+                            {
+                                assignedToName = item.assignedTo.name;
+                            }
+                            tasks.Add(new TaskDTO(item.id, item.title, assignedToName, getTagNameFromTag(item.tags), item.state));
                         }
-                        tasks.Add(new TaskDTO(item.id, item.title, assignedToName, getTagNameFromTag(item.tags), item.state));
                     }
                 }
             }
@@ -166,14 +168,9 @@ namespace Assignment4.Entities
             var tasks = new List<TaskDTO>();
             foreach (var item in _context.Tasks)
             {
-                if (item.assignedTo.id == id)
+                if (item.assignedTo != null && item.assignedTo.id == id)
                 {
-                    string assignedToName = null;
-                    if (item.assignedTo != null)
-                    {
-                        assignedToName = item.assignedTo.name;
-                    }
-                    tasks.Add(new TaskDTO(item.id, item.title, assignedToName, getTagNameFromTag(item.tags), item.state));
+                    tasks.Add(new TaskDTO(item.id, item.title, item.assignedTo.name, getTagNameFromTag(item.tags), item.state));
                 }
             }
             return tasks;
@@ -212,7 +209,6 @@ namespace Assignment4.Entities
 
         public Response Update(TaskUpdateDTO task)
         {
-            //Create/update task must allow for editing tags.
             User user = null;
             if (task.AssignedToId != null)
             {
@@ -236,8 +232,11 @@ namespace Assignment4.Entities
                 stateUpdated = DateTime.UtcNow,
             };
             var elementToBeUpdated = _context.Tasks.Single(x => x.id == task.Id);
-            //Maybe use the _context.UpdateRange here?
-            elementToBeUpdated = taskElement;
+            elementToBeUpdated.title = taskElement.title;
+            elementToBeUpdated.description = taskElement.description;
+            elementToBeUpdated.tags = taskElement.tags;
+            elementToBeUpdated.state = taskElement.state;
+            elementToBeUpdated.stateUpdated = taskElement.stateUpdated;
             _context.SaveChanges();
             return Response.Updated;
         }

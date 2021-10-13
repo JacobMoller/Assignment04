@@ -12,7 +12,7 @@ namespace Assignment4.Entities.Tests
         TaskRepository ts = new TaskRepository();
 
         [Fact]
-        public void CreateDTO()
+        public void CreatingTask_ValidatingThatAttributesAreSet()
         {
             var taskCreateDTO = new TaskCreateDTO
             {
@@ -36,11 +36,10 @@ namespace Assignment4.Entities.Tests
             Assert.Null(actual.Tags);
             Assert.Equal(expected.State, actual.State);
             Assert.Equal(expected.StateUpdated, actual.StateUpdated, precision: TimeSpan.FromSeconds(5));
-
         }
 
         [Fact]
-        public void ReadAll()
+        public void CountNumberOfTasks_AddOne_ValidateIncremention()
         {
             int a = ts.ReadAll().Count();
             var taskDTO = new TaskCreateDTO
@@ -59,8 +58,8 @@ namespace Assignment4.Entities.Tests
         }
 
 
-        /*[Fact]
-        public void ReadAllRemoved()
+        [Fact]
+        public void CountNumberOfRemovedTasks_RemoveOne_ValidateIncremention()
         {
             int a = ts.ReadAllRemoved().Count();
             var taskDTO = new TaskCreateDTO
@@ -76,23 +75,25 @@ namespace Assignment4.Entities.Tests
 
             var updateTask = new TaskUpdateDTO
             {
+                Id = id,
                 Title = "Making UI",
                 AssignedToId = 2,
                 Description = "farvel",
                 Tags = null,
-                Id = id,
                 State = State.Active,
             };
 
             var updatedtask = ts.Update(updateTask);
 
-            int b = ts.ReadAllRemoved().Count();
-            ts.Delete(updateTask.Id);
-            Assert.Equal(a, b + 1);
-        }*/
+            Assert.Equal(Response.Updated, updatedtask);
 
-        /*[Fact]
-        public void ReadAllByTag()
+            ts.Delete(updateTask.Id);
+            int b = ts.ReadAllRemoved().Count();
+            Assert.Equal(a, b - 1);
+        }
+
+        [Fact]
+        public void CountNumberOfTasksWithTag_AddOne_ValidateIncremention()
         {
             var taskDTOOne = new TaskCreateDTO
             {
@@ -116,16 +117,37 @@ namespace Assignment4.Entities.Tests
 
             int b = ts.ReadAllByTag("UI").Count();
             Assert.Equal(a, b - 1);
-        }*/
-
-        /*[Fact]
-        public void ReadAllByUser()
-        {
-
-        }*/
+        }
 
         [Fact]
-        public void ReadAllByState()
+        public void CountNumberOfTasksAssignedToUser_AddOne_ValidateIncremention()
+        {
+            var taskDTOOne = new TaskCreateDTO
+            {
+                Title = "Make UI",
+                AssignedToId = 4,
+                Description = "hej",
+                Tags = new List<string>() { "UI" },
+            };
+            ts.Create(taskDTOOne);
+
+            int a = ts.ReadAllByUser(4).Count();
+
+            var taskDTOTwo = new TaskCreateDTO
+            {
+                Title = "Make Other UI",
+                AssignedToId = 4,
+                Description = "hej",
+                Tags = new List<string> { "UI" },
+            };
+            ts.Create(taskDTOTwo);
+
+            int b = ts.ReadAllByUser(4).Count();
+            Assert.Equal(a, b - 1);
+        }
+
+        [Fact]
+        public void CountNumberOfTasksWithStateNew_AddOne_ValidateIncremention()
         {
             var test = new List<string>().Count();
             int a = ts.ReadAllByState(State.New).Count();
@@ -145,7 +167,7 @@ namespace Assignment4.Entities.Tests
         }
 
         [Fact]
-        public void Read()
+        public void CreateTask_ValidateAttributes()
         {
             var taskDTO = new TaskCreateDTO
             {
@@ -167,14 +189,10 @@ namespace Assignment4.Entities.Tests
             Assert.Null(actual.Tags);
             Assert.Equal(expected.State, actual.State);
             Assert.Equal(expected.StateUpdated, actual.StateUpdated, precision: TimeSpan.FromSeconds(5));
-
-
-
-
         }
 
         [Fact]
-        public void Update()
+        public void CreateTask_UpdateTask_ValidateAttributes()
         {
             var taskDTO = new TaskCreateDTO
             {
@@ -192,16 +210,23 @@ namespace Assignment4.Entities.Tests
                 Title = "Making UI",
                 AssignedToId = 2,
                 Description = "farvel",
-                Tags = null, //TODO: Use different tags
+                Tags = null,
                 Id = id,
                 State = State.Active,
             };
             var newTaskResponse = ts.Update(newTaskDTO);
             Assert.Equal(Response.Updated, newTaskResponse);
+
+            var actual = ts.Read(newTaskDTO.Id);
+
+            Assert.Equal("Making UI", actual.Title);
+            Assert.Equal("farvel", actual.Description);
+            Assert.Equal(State.Active, actual.State);
+            Assert.Equal(DateTime.UtcNow, actual.StateUpdated, precision: TimeSpan.FromSeconds(5));
         }
 
         [Fact]
-        public void Delete()
+        public void CreateTaskAndValidateCreation_DeleteTaskAndValidateDeletion_TaskIsNull()
         {
             var taskDTO = new TaskCreateDTO
             {

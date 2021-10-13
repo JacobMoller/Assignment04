@@ -8,7 +8,7 @@ namespace Assignment4.Entities.Tests
         TagRepository ts = new TagRepository();
 
         [Fact]
-        public void CreateDTO()
+        public void CreatingTag_ValidatingThatAttributesAreSet()
         {
             var tagCreateDTO = new TagCreateDTO
             {
@@ -28,7 +28,7 @@ namespace Assignment4.Entities.Tests
 
 
         [Fact]
-        public void Read()
+        public void CreateTag_ValidateAttributes()
         {
             TagCreateDTO tag = new TagCreateDTO
             {
@@ -44,7 +44,7 @@ namespace Assignment4.Entities.Tests
         }
 
         [Fact]
-        public void ReadAll()
+        public void CountNumberOfTags_AddOne_ValidateIncremention()
         {
             int a = ts.ReadAll().Count;
             var tagDTO = new TagCreateDTO
@@ -60,7 +60,7 @@ namespace Assignment4.Entities.Tests
         }
 
         [Fact]
-        public void Update()
+        public void CreateTag_UpdateTag_ValidateAttributes()
         {
             var tagDTO = new TagCreateDTO
             {
@@ -80,13 +80,15 @@ namespace Assignment4.Entities.Tests
         }
 
         [Fact]
-        public void Delete()
+        public void CreateTagAndValidateCreation_DeleteTagAndValidateDeletion_TagIsNull()
         {
             TagCreateDTO tag = new TagCreateDTO
             {
                 Name = "User Interface",
             };
             (Response tagResponse, int id) = ts.Create(tag);
+
+            Assert.Equal(Response.Created, tagResponse);
 
             var tagDeleteResponse = ts.Delete(id);
 
@@ -95,13 +97,14 @@ namespace Assignment4.Entities.Tests
         }
 
         [Fact]
-        public void DeleteUnsuccesful_ForceMissing()
+        public void CreateTagAndValidateCreation_ConnectToUser_DeleteTagExpectForceMissing_ReturnsConflict()
         {
             TagCreateDTO tag = new TagCreateDTO
             {
                 Name = "User Interface",
             };
             var response = ts.Create(tag);
+            Assert.Equal(Response.Created, response.Response);
 
             ts.ConnectToTask(response.TagId, 1);
 
@@ -111,13 +114,14 @@ namespace Assignment4.Entities.Tests
         }
 
         [Fact]
-        public void DeleteSuccesful_WithForce()
+        public void CreateTagAndValidateCreation_DeleteTagUseForce_ReturnsDeleted()
         {
             TagCreateDTO tag = new TagCreateDTO
             {
                 Name = "User Interface",
             };
             var response = ts.Create(tag);
+            Assert.Equal(Response.Created, response.Response);
 
             ts.ConnectToTask(response.TagId, 1);
 

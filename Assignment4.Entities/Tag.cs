@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Assignment4.Entities
 {
-    //[Index(nameof(name), IsUnique = true)]
     public class Tag
     {
         [Key]

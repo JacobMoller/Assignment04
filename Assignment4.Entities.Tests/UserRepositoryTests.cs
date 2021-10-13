@@ -9,7 +9,7 @@ namespace Assignment4.Entities.Tests
         UserRepository us = new UserRepository();
 
         [Fact]
-        public void Create()
+        public void CreatingUser_ValidatingThatAttributesAreSet()
         {
             var userCreateDTO = new UserCreateDTO
             {
@@ -29,7 +29,7 @@ namespace Assignment4.Entities.Tests
         }
 
         [Fact]
-        public void ReadAll()
+        public void CountNumberOfUser_AddOne_ValidateIncremention()
         {
             var userDTO = new UserCreateDTO
             {
@@ -46,7 +46,7 @@ namespace Assignment4.Entities.Tests
         }
 
         [Fact]
-        public void Read()
+        public void CreateUser_ValidateAttributes()
         {
             var userDTO = new UserCreateDTO
             {
@@ -65,7 +65,7 @@ namespace Assignment4.Entities.Tests
         }
 
         [Fact]
-        public void Update()
+        public void CreateUser_UpdateUser_ValidateAttributes()
         {
             var userDTO = new UserCreateDTO
             {
@@ -87,10 +87,8 @@ namespace Assignment4.Entities.Tests
         }
 
         [Fact]
-        public void Delete()
+        public void CreateUserAndValidateCreation_DeleteUserAndValidateDeletion_UserIsNull()
         {
-            var us = new UserRepository();
-
             var userDTO = new UserCreateDTO
             {
                 Name = "John Doe",

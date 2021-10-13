@@ -120,7 +120,6 @@ namespace Assignment4.Entities
                 name = tag.Name,
             };
             var elementToBeUpdated = _context.Tags.Single(x => x.id == tag.Id);
-            //Maybe use the _context.UpdateRange here?
             elementToBeUpdated = tagElement;
             _context.SaveChanges();
             return Response.Updated;

@@ -80,7 +80,6 @@ namespace Assignment4.Entities
                 email = user.Email,
             };
             var elementToBeUpdated = _context.Users.FirstOrDefault(x => x.id == user.Id);
-            //Maybe use the _context.UpdateRange here?
             if (elementToBeUpdated != null)
             {
                 elementToBeUpdated = userElement;

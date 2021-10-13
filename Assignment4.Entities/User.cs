@@ -5,7 +5,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Assignment4.Entities
 {
-    //[Index(nameof(email), IsUnique = true)]
     public class User
     {
         [Key]
