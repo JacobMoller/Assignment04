@@ -5,11 +5,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Assignment4.Entities
 {
-    //[Index(nameof(email), IsUnique = true)]
     public class User
     {
         [Key]
-        public int userId { get; set; }
+        public int id { get; set; }
 
         [StringLength(100)]
         public string name { get; set; }

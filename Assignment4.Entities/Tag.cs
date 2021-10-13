@@ -4,11 +4,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Assignment4.Entities
 {
-    //[Index(nameof(name), IsUnique = true)]
     public class Tag
     {
         [Key]
-        public int tagId { get; set; }
+        public int id { get; set; }
 
         [Required]
         [StringLength(50)]
